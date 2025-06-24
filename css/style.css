@@ -462,6 +462,31 @@ nav {
     height: 100%;
 }
 
+.video-error-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+.video-error-message i {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.video-error-message.active {
+    display: flex;
+}
 
 /* Instructors Section */
 .instructors {

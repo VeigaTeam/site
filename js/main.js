@@ -55,22 +55,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const videoModal = document.getElementById('video-modal');
     const youtubeFrame = document.getElementById('youtube-frame');
     const closeModal = document.querySelector('.close-modal');
+    const errorMessage = document.querySelector('.video-error-message');
     
     // Abrir o modal de vídeo
     videoButtons.forEach(button => {
         button.addEventListener('click', function() {
             const videoUrl = this.getAttribute('data-video');
-            youtubeFrame.src = videoUrl + "?autoplay=1"; // Adiciona autoplay
-            videoModal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Impede o scroll enquanto o modal estiver aberto
+            showVideo(videoUrl);
         });
     });
+
+    // Função para mostrar o vídeo
+    function showVideo(videoUrl) {
+        // Esconde a mensagem de erro se estiver visível
+        errorMessage.classList.remove('active');
+        
+        // Adiciona um listener para erro no carregamento do iframe
+        youtubeFrame.onerror = handleVideoError;
+        youtubeFrame.onload = handleVideoLoad;
+
+        try {
+            // Tenta carregar o vídeo
+            youtubeFrame.src = videoUrl + "?autoplay=1";
+            videoModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Se após 5 segundos o vídeo não carregar, mostra erro
+            setTimeout(() => {
+                if (!youtubeFrame.contentWindow) {
+                    handleVideoError();
+                }
+            }, 5000);
+        } catch (error) {
+            handleVideoError();
+        }
+    }
+
+    // Função para lidar com erro no carregamento do vídeo
+    function handleVideoError() {
+        youtubeFrame.src = '';
+        errorMessage.classList.add('active');
+    }
+
+    // Função para lidar com o carregamento bem sucedido do vídeo
+    function handleVideoLoad() {
+        errorMessage.classList.remove('active');
+    }
     
     // Fechar o modal ao clicar no X
     if (closeModal) {
-        closeModal.addEventListener('click', function() {
-            closeVideoModal();
-        });
+        closeModal.addEventListener('click', closeVideoModal);
     }
     
     // Fechar o modal ao clicar fora do conteúdo
@@ -91,7 +125,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function closeVideoModal() {
         videoModal.style.display = 'none';
-        youtubeFrame.src = ''; // Interrompe a reprodução do vídeo removendo o src
+        youtubeFrame.src = ''; // Interrompe a reprodução do vídeo
+        errorMessage.classList.remove('active'); // Remove mensagem de erro
         document.body.style.overflow = ''; // Restaura o scroll
     }
 
