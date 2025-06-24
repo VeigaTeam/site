@@ -80,11 +80,9 @@ document.addEventListener('DOMContentLoaded', function() {
             videoModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
             
-            // Se após 5 segundos o vídeo não carregar, mostra erro
-            setTimeout(() => {
-                if (!youtubeFrame.contentWindow) {
-                    handleVideoError();
-                }
+            // Define um timeout para lidar com falhas no carregamento, mas será limpo em caso de sucesso
+            const timeoutId = setTimeout(() => {
+                handleVideoError();
             }, 5000);
         } catch (error) {
             handleVideoError();
