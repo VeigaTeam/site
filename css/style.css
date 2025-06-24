@@ -732,75 +732,32 @@ nav {
     text-decoration: none;
 }
 
-.instagram-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin: 30px 0;
-}
-
-.instagram-post {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transition: var(--transition);
-    text-decoration: none; /* Remove underline from link */
-    display: block; /* Make the whole card clickable */
-}
-
-.instagram-post:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-}
-
-.instagram-post img {
+.instagram-embed-container {
     width: 100%;
-    height: 250px; /* Fixed height for images */
-    object-fit: cover;
-    display: block;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
 }
 
-.instagram-post-info {
-    padding: 15px;
-    background-color: white;
+.instagram-grid {
+    margin: 30px 0;
+    width: 100%;
 }
 
-.instagram-post-caption {
-    font-size: 0.9rem;
-    color: #333;
-    margin-bottom: 10px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* Limit caption to 2 lines */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+/* Estilização para os posts do Instagram */
+.instagram-grid img {
+    border-radius: 8px;
+    transition: transform 0.3s ease;
 }
 
-.instagram-post-date {
-    font-size: 0.8rem;
-    color: #888;
+.instagram-grid img:hover {
+    transform: scale(1.02);
 }
 
 .instagram-footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 30px;
 }
-
-.loading-spinner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    grid-column: 1 / -1; /* Span across all columns */
-    padding: 40px;
-    color: var(--gray-color);
-}
-
-.loading-spinner i {
-    font-size: 2rem;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
 
 /* Contact Section */
 .contact {
