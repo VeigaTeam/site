@@ -1,4 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Registrar Service Worker para cache offline
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registrado com sucesso:', registration.scope);
+                })
+                .catch((error) => {
+                    console.error('Falha ao registrar Service Worker:', error);
+                });
+        });
+    }
+    
     // Menu de navegação responsivo
     const hamburger = document.querySelector('.hamburger');
     const navLinks = document.querySelector('.nav-links');
@@ -21,7 +34,28 @@ document.addEventListener('DOMContentLoaded', function() {
             header.style.background = 'rgba(0, 0, 0, 0.9)';
             header.style.padding = '15px 0';
         }
+        
+        // Mostrar/ocultar botão scroll to top
+        const scrollToTopBtn = document.getElementById('scroll-to-top');
+        if (scrollToTopBtn) {
+            if (window.scrollY > 300) {
+                scrollToTopBtn.classList.add('show');
+            } else {
+                scrollToTopBtn.classList.remove('show');
+            }
+        }
     });
+    
+    // Scroll to top functionality
+    const scrollToTopBtn = document.getElementById('scroll-to-top');
+    if (scrollToTopBtn) {
+        scrollToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
     
     // Smooth scroll para links de navegação
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -39,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Calcula a posição de scroll levando em conta a altura do header fixo
-                const headerHeight = header.offsetHeight; // Obtém a altura atual do header
+                const headerHeight = header.offsetHeight;
                 const targetPosition = targetElement.getBoundingClientRect().top + window.scrollY - headerHeight;
 
                 window.scrollTo({
@@ -50,12 +84,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Funcionalidade do modal de vídeo
+    // Funcionalidade do modal de vídeo melhorada
     const videoButtons = document.querySelectorAll('.video-btn');
     const videoModal = document.getElementById('video-modal');
     const youtubeFrame = document.getElementById('youtube-frame');
     const closeModal = document.querySelector('.close-modal');
-    const errorMessage = document.querySelector('.video-error-message');
+    const videoLoading = document.querySelector('.video-loading');
     
     // Abrir o modal de vídeo
     videoButtons.forEach(button => {
@@ -65,39 +99,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Função para mostrar o vídeo
+    // Função para mostrar o vídeo com loading state
     function showVideo(videoUrl) {
-        // Esconde a mensagem de erro se estiver visível
-        errorMessage.classList.remove('active');
+        // Mostrar loading
+        videoLoading.style.display = 'flex';
+        youtubeFrame.style.display = 'none';
         
-        // Adiciona um listener para erro no carregamento do iframe
-        youtubeFrame.onerror = handleVideoError;
-        youtubeFrame.onload = handleVideoLoad;
-
-        try {
-            // Tenta carregar o vídeo
-            youtubeFrame.src = videoUrl + "?autoplay=1";
-            videoModal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            
-            // Define um timeout para lidar com falhas no carregamento, mas será limpo em caso de sucesso
-            const timeoutId = setTimeout(() => {
-                handleVideoError();
-            }, 5000);
-        } catch (error) {
-            handleVideoError();
-        }
-    }
-
-    // Função para lidar com erro no carregamento do vídeo
-    function handleVideoError() {
-        youtubeFrame.src = '';
-        errorMessage.classList.add('active');
-    }
-
-    // Função para lidar com o carregamento bem sucedido do vídeo
-    function handleVideoLoad() {
-        errorMessage.classList.remove('active');
+        // Mostrar modal com animação
+        videoModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        // Adicionar classe para animação
+        setTimeout(() => {
+            videoModal.classList.add('show');
+        }, 10);
+        
+        // Simular carregamento do vídeo
+        setTimeout(() => {
+            try {
+                youtubeFrame.src = videoUrl + "?autoplay=1";
+                youtubeFrame.style.display = 'block';
+                videoLoading.style.display = 'none';
+            } catch (error) {
+                console.error('Erro ao carregar vídeo:', error);
+                videoLoading.innerHTML = '<p>Erro ao carregar vídeo. Tente novamente.</p>';
+            }
+        }, 1500);
     }
     
     // Fechar o modal ao clicar no X
@@ -122,10 +149,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function closeVideoModal() {
-        videoModal.style.display = 'none';
-        youtubeFrame.src = ''; // Interrompe a reprodução do vídeo
-        errorMessage.classList.remove('active'); // Remove mensagem de erro
-        document.body.style.overflow = ''; // Restaura o scroll
+        videoModal.classList.remove('show');
+        setTimeout(() => {
+            videoModal.style.display = 'none';
+            youtubeFrame.src = '';
+            videoLoading.style.display = 'flex';
+            videoLoading.innerHTML = '<div class="spinner"></div><p>Carregando vídeo...</p>';
+        }, 300);
+        document.body.style.overflow = '';
     }
 
     // Adicionar botão de login ao menu móvel apenas em telas menores
@@ -151,87 +182,52 @@ document.addEventListener('DOMContentLoaded', function() {
     addLoginButtonToMobileMenu();
     window.addEventListener('resize', addLoginButtonToMobileMenu);
 
-
-    // Carregar posts do Instagram (Simulação)
-    // Em um cenário real, você usaria a API do Instagram ou um widget
-    function loadInstagramFeed() {
-        const instagramPostsContainer = document.getElementById('instagram-posts');
+    // Validação de formulários melhorada
+    function validateForm(form) {
+        const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+        let isValid = true;
         
-        if (!instagramPostsContainer) return;
-        
-        // Simulação de dados de posts (substitua pelas suas imagens e legendas)
-        const dummyPosts = [
-            {
-                imageUrl: 'img/instagram-post-1.jpg', // Substituir
-                caption: 'Treino intenso de Muay Thai hoje! 👊 #VeigaTeam #MuayThai',
-                date: '2 dias atrás',
-                link: 'https://www.instagram.com/veigateam/' // Link para o post real
-            },
-            {
-                imageUrl: 'img/instagram-post-2.jpg', // Substituir
-                caption: 'Parabéns aos novos graduados de Jiu-Jitsu! 🥋 #JiuJitsu #VeigaTeam',
-                date: '5 dias atrás',
-                link: 'https://www.instagram.com/veigateam/'
-            },
-            {
-                imageUrl: 'img/instagram-post-3.jpg', // Substituir
-                caption: 'Campeonato interno foi um sucesso! Obrigado a todos que participaram 🏆 #VeigaTeam #MMA',
-                date: '1 semana atrás',
-                link: 'https://www.instagram.com/veigateam/'
-            },
-            {
-                imageUrl: 'img/instagram-post-4.jpg', // Substituir
-                caption: 'Nova turma Kids começando hoje! Traga seu filho para experimentar 👦👧 #VeigaTeamKids',
-                date: '1 semana atrás',
-                link: 'https://www.instagram.com/veigateam/'
-            },
-            {
-                imageUrl: 'img/instagram-post-5.jpg', // Substituir
-                caption: 'Seminário com o mestre! Conhecimento é poder 🔝 #VeigaTeam #ArtesMarciais',
-                date: '2 semanas atrás',
-                link: 'https://www.instagram.com/veigateam/'
-            },
-            {
-                imageUrl: 'img/instagram-post-6.jpg', // Substituir
-                caption: 'Segunda-feira de muito treino e superação! 💪 #VeigaTeam #SegundaFeira',
-                date: '2 semanas atrás',
-                link: 'https://www.instagram.com/veigateam/'
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                input.classList.add('error');
+                isValid = false;
+            } else {
+                input.classList.remove('error');
             }
-        ];
-        
-        // Limpa o conteúdo atual (spinner)
-        instagramPostsContainer.innerHTML = '';
-        
-        // Cria e adiciona os elementos dos posts
-        dummyPosts.forEach(post => {
-            const postElement = document.createElement('a');
-            postElement.href = post.link;
-            postElement.target = '_blank';
-            postElement.classList.add('instagram-post');
             
-            postElement.innerHTML = `
-                <img src="${post.imageUrl}" alt="Instagram post">
-                <div class="instagram-post-info">
-                    <p class="instagram-post-caption">${post.caption}</p>
-                    <p class="instagram-post-date">${post.date}</p>
-                </div>
-            `;
+            // Validação específica para email
+            if (input.type === 'email' && input.value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(input.value)) {
+                    input.classList.add('error');
+                    isValid = false;
+                }
+            }
             
-            instagramPostsContainer.appendChild(postElement);
+            // Validação específica para telefone
+            if (input.type === 'tel' && input.value) {
+                const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+                if (!phoneRegex.test(input.value)) {
+                    input.classList.add('error');
+                    isValid = false;
+                }
+            }
         });
+        
+        return isValid;
     }
-    
-    // Chama a função para carregar o feed do Instagram após um pequeno delay
-    // para dar a impressão de carregamento assíncrono
-    setTimeout(loadInstagramFeed, 1500);
 
-
-    // Manipulação do formulário de contato (aula experimental)
+    // Manipulação do formulário de contato (aula experimental) melhorada
     const trialForm = document.getElementById('trial-form');
     
     if (trialForm) {
         trialForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            if (!validateForm(this)) {
+                alert('Por favor, preencha todos os campos obrigatórios corretamente.');
+                return;
+            }
             
             // Simulação de envio do formulário
             const formData = new FormData(trialForm);
@@ -243,35 +239,23 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log('Dados do formulário de aula experimental:', formValues);
             
-            // --- AQUI VOCÊ ADICIONARIA O CÓDIGO REAL DE ENVIO ---
-            // Exemplo usando fetch para enviar para um endpoint (substitua por seu URL)
-            /*
-            fetch('/seu-endpoint-de-contato', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formValues),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
+            // Mostrar loading no botão
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Enviando...';
+            submitBtn.disabled = true;
+            
+            // Simular envio
+            setTimeout(() => {
                 alert('Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.');
                 trialForm.reset();
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('Ocorreu um erro ao enviar sua solicitação. Por favor, tente novamente.');
-            });
-            */
-
-            // Apenas o feedback visual simulado:
-            alert('Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.');
-            trialForm.reset();
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
         });
     }
     
-    // Formulário de newsletter
+    // Formulário de newsletter melhorado
     const newsletterForm = document.querySelector('.newsletter-form');
     
     if (newsletterForm) {
@@ -281,34 +265,62 @@ document.addEventListener('DOMContentLoaded', function() {
             const emailInput = this.querySelector('input[type="email"]');
             const email = emailInput.value;
             
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Por favor, insira um email válido.');
+                return;
+            }
+            
             // Simulação de inscrição na newsletter
             console.log('Email inscrito na newsletter:', email);
             
-             // --- AQUI VOCÊ ADICIONARIA O CÓDIGO REAL DE ENVIO ---
-            // Exemplo usando fetch para enviar para um endpoint (substitua por seu URL)
-            /*
-            fetch('/seu-endpoint-de-newsletter', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email: email }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Success:', data);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Inscrito!';
+            submitBtn.disabled = true;
+            
+            setTimeout(() => {
                 alert('Obrigado por se inscrever em nossa newsletter!');
                 newsletterForm.reset();
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('Ocorreu um erro ao se inscrever. Por favor, tente novamente.');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
+        });
+    }
+    
+    // Intersection Observer para animações de entrada
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, observerOptions);
+    
+    // Observar elementos para animação
+    document.querySelectorAll('.class-card, .instructor-card, .testimonial, .feature').forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Lazy loading para imagens
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src || img.src;
+                    img.classList.remove('lazy');
+                    imageObserver.unobserve(img);
+                }
             });
-            */
-
-            // Apenas o feedback visual simulado:
-            alert('Obrigado por se inscrever em nossa newsletter!');
-            newsletterForm.reset();
+        });
+        
+        document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+            imageObserver.observe(img);
         });
     }
 });
