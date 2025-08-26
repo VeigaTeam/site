@@ -1,0 +1,66 @@
+{
+    "name": "Veiga Team - Academia de Artes Marciais",
+    "short_name": "Veiga Team",
+    "description": "Academia de artes marciais em Paulínia-SP. Muay Thai, Jiu-Jitsu e MMA com professores qualificados.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#121212",
+    "theme_color": "#e60000",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "pt-BR",
+    "categories": ["sports", "health", "education"],
+    "icons": [
+        {
+            "src": "/img/logo.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/img/logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/img/academy-template.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Agendar Aula",
+            "short_name": "Aula",
+            "description": "Agendar uma aula experimental",
+            "url": "/#contact",
+            "icons": [
+                {
+                    "src": "/img/logo.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Horários",
+            "short_name": "Horários",
+            "description": "Ver horários das aulas",
+            "url": "/#schedule",
+            "icons": [
+                {
+                    "src": "/img/logo.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+        "preferred_width": 400
+    }
+}
