@@ -1,0 +1,25 @@
+{
+  "name": "veiga-team-site",
+  "version": "1.0.0",
+  "description": "Site da academia Veiga Team com formulários funcionais",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Build não necessário para GitHub Pages'",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  },
+  "keywords": [
+    "academia",
+    "artes-marciais",
+    "jiu-jitsu",
+    "muay-thai",
+    "mma"
+  ],
+  "author": "Veiga Team",
+  "license": "MIT"
+}
