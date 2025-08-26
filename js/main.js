@@ -2,12 +2,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Registrar Service Worker para cache offline
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
+            // Usar caminho relativo para o Service Worker
+            const swPath = './sw.js';
+            
+            navigator.serviceWorker.register(swPath)
                 .then((registration) => {
                     console.log('Service Worker registrado com sucesso:', registration.scope);
                 })
                 .catch((error) => {
-                    console.error('Falha ao registrar Service Worker:', error);
+                    console.warn('Service Worker não pôde ser registrado:', error.message);
+                    // Não mostrar erro crítico, apenas aviso
                 });
         });
     }
@@ -187,40 +191,87 @@ document.addEventListener('DOMContentLoaded', function() {
         const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
         let isValid = true;
         
+        // Limpar mensagens de erro anteriores
+        form.querySelectorAll('.error-message').forEach(msg => msg.remove());
+        
         inputs.forEach(input => {
+            // Remover classes de erro anteriores
+            input.classList.remove('error');
+            
             if (!input.value.trim()) {
                 input.classList.add('error');
+                showErrorMessage(input, 'Este campo é obrigatório');
                 isValid = false;
             } else {
-                input.classList.remove('error');
-            }
-            
-            // Validação específica para email
-            if (input.type === 'email' && input.value) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(input.value)) {
-                    input.classList.add('error');
-                    isValid = false;
+                // Validação específica para email
+                if (input.type === 'email' && input.value) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(input.value)) {
+                        input.classList.add('error');
+                        showErrorMessage(input, 'Digite um email válido');
+                        isValid = false;
+                    }
                 }
-            }
-            
-            // Validação específica para telefone
-            if (input.type === 'tel' && input.value) {
-                const phoneRegex = /^[\d\s\-\(\)\+]+$/;
-                if (!phoneRegex.test(input.value)) {
-                    input.classList.add('error');
-                    isValid = false;
+                
+                // Validação específica para telefone brasileiro
+                if (input.type === 'tel' && input.value) {
+                    // Regex mais flexível para telefones brasileiros
+                    const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+                    const cleanPhone = input.value.replace(/\D/g, '');
+                    
+                    if (!phoneRegex.test(input.value) || cleanPhone.length < 10 || cleanPhone.length > 11) {
+                        input.classList.add('error');
+                        showErrorMessage(input, 'Digite um telefone válido (DDD + número)');
+                        isValid = false;
+                    }
                 }
             }
         });
         
         return isValid;
     }
+    
+    // Função para mostrar mensagens de erro
+    function showErrorMessage(input, message) {
+        // Remover mensagem de erro anterior se existir
+        const existingError = input.parentNode.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Criar nova mensagem de erro
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        
+        // Inserir após o input
+        input.parentNode.appendChild(errorDiv);
+    }
 
     // Manipulação do formulário de contato (aula experimental) melhorada
     const trialForm = document.getElementById('trial-form');
     
     if (trialForm) {
+        // Validação em tempo real
+        const inputs = trialForm.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateSingleField(this);
+            });
+            
+            input.addEventListener('input', function() {
+                // Remover erro quando o usuário começa a digitar
+                if (this.classList.contains('error')) {
+                    this.classList.remove('error');
+                    const errorMsg = this.parentNode.querySelector('.error-message');
+                    if (errorMsg) {
+                        errorMsg.remove();
+                    }
+                }
+            });
+        });
+        
         trialForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -251,8 +302,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 trialForm.reset();
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
+                
+                // Limpar mensagens de erro
+                trialForm.querySelectorAll('.error-message').forEach(msg => msg.remove());
+                trialForm.querySelectorAll('.error').forEach(input => input.classList.remove('error'));
             }, 2000);
         });
+    }
+    
+    // Função para validar um campo individual
+    function validateSingleField(input) {
+        if (input.hasAttribute('required') && !input.value.trim()) {
+            input.classList.add('error');
+            showErrorMessage(input, 'Este campo é obrigatório');
+            return false;
+        }
+        
+        if (input.type === 'email' && input.value) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(input.value)) {
+                input.classList.add('error');
+                showErrorMessage(input, 'Digite um email válido');
+                return false;
+            }
+        }
+        
+        if (input.type === 'tel' && input.value) {
+            const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+            const cleanPhone = input.value.replace(/\D/g, '');
+            
+            if (!phoneRegex.test(input.value) || cleanPhone.length < 10 || cleanPhone.length > 11) {
+                input.classList.add('error');
+                showErrorMessage(input, 'Digite um telefone válido (DDD + número)');
+                return false;
+            }
+        }
+        
+        // Se chegou até aqui, o campo é válido
+        input.classList.remove('error');
+        const errorMsg = input.parentNode.querySelector('.error-message');
+        if (errorMsg) {
+            errorMsg.remove();
+        }
+        return true;
     }
     
     // Formulário de newsletter melhorado
