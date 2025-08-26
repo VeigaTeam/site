@@ -248,8 +248,56 @@ document.addEventListener('DOMContentLoaded', function() {
         // Inserir após o input
         input.parentNode.appendChild(errorDiv);
     }
+    
+    // Função para mostrar notificações
+    function showNotification(message, type = 'info') {
+        // Remover notificação anterior se existir
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // Criar notificação
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-message">${message}</span>
+                <button class="notification-close">&times;</button>
+            </div>
+        `;
+        
+        // Adicionar ao body
+        document.body.appendChild(notification);
+        
+        // Mostrar com animação
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Auto-remover após 5 segundos
+        setTimeout(() => {
+            hideNotification(notification);
+        }, 5000);
+        
+        // Botão de fechar
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            hideNotification(notification);
+        });
+    }
+    
+    // Função para esconder notificação
+    function hideNotification(notification) {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }
 
-    // Manipulação do formulário de contato (aula experimental) melhorada
+    // Manipulação do formulário de contato (aula experimental) funcional
     const trialForm = document.getElementById('trial-form');
     
     if (trialForm) {
@@ -272,15 +320,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        trialForm.addEventListener('submit', function(e) {
+        trialForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             if (!validateForm(this)) {
-                alert('Por favor, preencha todos os campos obrigatórios corretamente.');
+                showNotification('Por favor, preencha todos os campos obrigatórios corretamente.', 'error');
                 return;
             }
             
-            // Simulação de envio do formulário
+            // Preparar dados do formulário
             const formData = new FormData(trialForm);
             let formValues = {};
             
@@ -288,25 +336,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 formValues[key] = value;
             }
             
-            console.log('Dados do formulário de aula experimental:', formValues);
-            
             // Mostrar loading no botão
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Enviando...';
             submitBtn.disabled = true;
             
-            // Simular envio
-            setTimeout(() => {
-                alert('Sua solicitação foi enviada com sucesso! Entraremos em contato em breve.');
-                trialForm.reset();
+            try {
+                // Enviar formulário para a API
+                const response = await fetch(getConfig('forms.trialClass.endpoint'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formValues)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showNotification(result.message, 'success');
+                    trialForm.reset();
+                    
+                    // Limpar mensagens de erro
+                    trialForm.querySelectorAll('.error-message').forEach(msg => msg.remove());
+                    trialForm.querySelectorAll('.error').forEach(input => input.classList.remove('error'));
+                } else {
+                    showNotification(result.error || 'Erro ao enviar formulário. Tente novamente.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao enviar formulário:', error);
+                showNotification('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+            } finally {
+                // Restaurar botão
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-                
-                // Limpar mensagens de erro
-                trialForm.querySelectorAll('.error-message').forEach(msg => msg.remove());
-                trialForm.querySelectorAll('.error').forEach(input => input.classList.remove('error'));
-            }, 2000);
+            }
         });
     }
     
@@ -347,35 +413,54 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
     
-    // Formulário de newsletter melhorado
+    // Formulário de newsletter funcional
     const newsletterForm = document.querySelector('.newsletter-form');
     
     if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
+        newsletterForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const emailInput = this.querySelector('input[type="email"]');
             const email = emailInput.value;
             
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                alert('Por favor, insira um email válido.');
+                showNotification('Por favor, insira um email válido.', 'error');
                 return;
             }
             
-            // Simulação de inscrição na newsletter
-            console.log('Email inscrito na newsletter:', email);
-            
+            // Mostrar loading no botão
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Inscrito!';
             submitBtn.disabled = true;
             
-            setTimeout(() => {
-                alert('Obrigado por se inscrever em nossa newsletter!');
-                newsletterForm.reset();
+            try {
+                // Enviar inscrição para a API
+                const response = await fetch(getConfig('forms.newsletter.endpoint'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showNotification(result.message, 'success');
+                    newsletterForm.reset();
+                } else {
+                    showNotification(result.error || 'Erro ao inscrever na newsletter. Tente novamente.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao inscrever na newsletter:', error);
+                showNotification('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+            } finally {
+                // Restaurar botão
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-            }, 1500);
+            }
         });
     }
     

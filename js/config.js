@@ -29,7 +29,7 @@ const VEIGA_TEAM_CONFIG = {
     // Configurações de formulários
     forms: {
         trialClass: {
-            endpoint: '/api/trial-class', // Endpoint para envio do formulário
+            endpoint: '/.netlify/functions/trial-class', // Endpoint para envio do formulário via Netlify Functions
             requiredFields: ['name', 'email', 'phone', 'interest'],
             validation: {
                 email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
@@ -37,7 +37,7 @@ const VEIGA_TEAM_CONFIG = {
             }
         },
         newsletter: {
-            endpoint: '/api/newsletter', // Endpoint para inscrição na newsletter
+            endpoint: '/.netlify/functions/newsletter', // Endpoint para inscrição na newsletter via Netlify Functions
             validation: {
                 email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
             }
